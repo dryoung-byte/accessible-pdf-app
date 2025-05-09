@@ -39,15 +39,19 @@ def tag_structure_with_ai(page_text):
     Text:
     {page_text}
     """
-    
-    # Use the updated API call for OpenAI
-    response = openai.Completion.create(
-        model="gpt-4",  # or gpt-3.5-turbo if you don't have access to gpt-4
-        prompt=prompt,
-        max_tokens=500  # Adjust tokens based on your needs
-    )
 
-    return response.choices[0].text.strip()  # Returns structured markdown
+    print("Sending text to OpenAI for structuring...")
+    try:
+        # Corrected API call for new OpenAI version
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # You can choose gpt-3.5 if needed
+            messages=[{"role": "user", "content": prompt}],
+        )
+        print("Response received from OpenAI.")
+        return response['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"Error generating structured text: {e}")
+        return ""
 
 # Step 3: Alt text form for Streamlit UI
 def get_alt_texts_ui(images):
