@@ -39,12 +39,15 @@ def tag_structure_with_ai(page_text):
     Text:
     {page_text}
     """
-
-    response = openai.ChatCompletion.create(  # Fixed API call
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
+    
+    # Use the updated API call for OpenAI
+    response = openai.Completion.create(
+        model="gpt-4",  # or gpt-3.5-turbo if you don't have access to gpt-4
+        prompt=prompt,
+        max_tokens=500  # Adjust tokens based on your needs
     )
-    return response.choices[0].message['content']  # Corrected this line to access the response
+
+    return response.choices[0].text.strip()  # Returns structured markdown
 
 # Step 3: Alt text form for Streamlit UI
 def get_alt_texts_ui(images):
@@ -60,57 +63,4 @@ class AccessiblePDF(FPDF):
     def header(self):
         pass
 
-    def add_markdown(self, markdown_text):
-        lines = markdown_text.split('\n')
-        for line in lines:
-            if line.startswith('# '):
-                self.set_font('Arial', 'B', 16)
-                self.cell(0, 10, line[2:], ln=True)
-            elif line.startswith('## '):
-                self.set_font('Arial', 'B', 14)
-                self.cell(0, 10, line[3:], ln=True)
-            elif line.strip() == '':
-                self.ln(5)
-            else:
-                self.set_font('Arial', '', 12)
-                self.multi_cell(0, 10, line)
-
-    def add_image_with_alt(self, image_path, alt_text):
-        self.image(image_path, w=100)
-        self.set_font('Arial', 'I', 10)
-        self.multi_cell(0, 10, f"Image description: {alt_text}")
-
-# Streamlit UI
-def main():
-    st.title("Accessible PDF Generator")
-    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
-
-    if uploaded_file is not None:
-        with open("temp.pdf", "wb") as f:
-            f.write(uploaded_file.read())
-
-        st.success("PDF uploaded successfully. Extracting content...")
-        text_blocks, images = extract_pdf_content("temp.pdf")
-
-        st.subheader("Add Alt Texts")
-        alt_texts = get_alt_texts_ui(images)
-
-        if st.button("Generate Accessible PDF"):
-            pdf = AccessiblePDF()
-            pdf.add_page()
-
-            for page_num, text in text_blocks:
-                if text:
-                    structured = tag_structure_with_ai(text)
-                    pdf.add_markdown(structured)
-
-            for img_path, _ in images:
-                pdf.add_image_with_alt(img_path, alt_texts.get(img_path, ""))
-
-            output_path = "accessible_output.pdf"
-            pdf.output(output_path)
-            with open(output_path, "rb") as f:
-                st.download_button("Download Accessible PDF", f, file_name=output_path)
-
-if __name__ == "__main__":
-    main()
+    def add_markdown(self, ma_
