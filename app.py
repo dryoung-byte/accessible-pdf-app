@@ -6,7 +6,7 @@ import openai
 import os
 import streamlit as st
 
-client = openai.OpenAI()  # ✅ new style for OpenAI v1+
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Make sure your key is set
 
 # Step 1: Extract text and images
 def extract_pdf_content(file_path):
@@ -40,11 +40,11 @@ def tag_structure_with_ai(page_text):
     {page_text}
     """
 
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(  # Fixed API call
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
     )
-    return response.choices[0].message.content
+    return response.choices[0].message['content']  # Corrected this line to access the response
 
 # Step 3: Alt text form for Streamlit UI
 def get_alt_texts_ui(images):
